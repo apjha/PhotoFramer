@@ -44,3 +44,7 @@ half-empty ones. Photos are rotated to match their slot and cropped to fill it, 
 ```sh
 npm test
 ```
+
+## License
+
+Released under the [MIT License](LICENSE). Copyright (c) 2026 Arvind Prakash.
