@@ -1,5 +1,6 @@
-// Offline support: serve the app shell from cache, refresh it in the background.
-const CACHE = 'photoframer-v1';
+// Offline support: always try the network first so updates show up immediately,
+// and fall back to the cached copy when offline.
+const CACHE = 'photoframer-v2';
 const ASSETS = ['./', 'index.html', 'css/style.css', 'js/packer.js', 'js/app.js', 'icon.svg', 'manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
@@ -14,11 +15,11 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
-  e.respondWith(caches.open(CACHE).then((cache) => cache.match(e.request, { ignoreSearch: true }).then((hit) => {
-    const fresh = fetch(e.request).then((res) => {
-      if (res.ok) cache.put(e.request, res.clone());
-      return res;
-    }).catch(() => hit);
-    return hit || fresh;
-  })));
+  e.respondWith(fetch(e.request).then((res) => {
+    if (res.ok) {
+      const copy = res.clone();
+      caches.open(CACHE).then((c) => c.put(e.request, copy));
+    }
+    return res;
+  }).catch(() => caches.match(e.request, { ignoreSearch: true })));
 });
