@@ -35,7 +35,7 @@
     unit: usLocale ? 'in' : 'cm',
     paperId: usLocale ? 'letter' : 'a4',
     paperW: 0, paperH: 0,
-    margin: 5, gap: 3,
+    margin: 3, gap: 3,
     fit: false, guides: true,
     frames: [],
     photos: []
@@ -419,6 +419,35 @@
     return s;
   }
 
+  // Largest margin (mm) at which a frame still fits on a paper, or -1 if it never fits.
+  function maxMarginFor(f, pw, ph) {
+    var a = Math.min(f.w, f.h), b = Math.max(f.w, f.h), W = Math.min(pw, ph), H = Math.max(pw, ph);
+    var m = Math.min((W - a) / 2, (H - b) / 2);
+    return m >= -1e-9 ? Math.max(0, m) : -1;
+  }
+
+  // Explain why a frame size is missing from the sheets and offer one-tap fixes.
+  function tooBigWarning(frame, n, p) {
+    var box = el('div', { class: 'warn' }, [el('p', { text: frameLabel(frame) + ' (' + plural(n, 'print') +
+      ") doesn't fit on " + p.name + ' with a ' + fmt(state.margin) + ' ' + state.unit + ' margin, so it is left off the sheets.' })]);
+    var actions = el('div', { class: 'warn-actions' });
+    var m = maxMarginFor(frame, p.w, p.h);
+    if (m >= 0) {
+      var step = state.unit === 'mm' ? 10 : 100, shown = Math.floor(m / MM[state.unit] * step) / step;
+      actions.appendChild(el('button', { class: 'btn small', type: 'button', text: 'Use ' + shown + ' ' + state.unit + ' margin',
+        onclick: function () { state.margin = shown * MM[state.unit]; renderPaper(); changed(); } }));
+    }
+    var alt = PAPERS.filter(function (x) {
+      return x.w && x.id !== state.paperId && maxMarginFor(frame, x.w, x.h) >= state.margin - 1e-9;
+    }).sort(function (x, y) { return x.w * x.h - y.w * y.h; })[0];
+    if (alt) {
+      actions.appendChild(el('button', { class: 'btn small', type: 'button', text: 'Switch to ' + alt.name,
+        onclick: function () { state.paperId = alt.id; renderPaper(); changed(); } }));
+    }
+    if (actions.childNodes.length) box.appendChild(actions);
+    return box;
+  }
+
   function renderLayout() {
     var p = paper();
     layout = computeLayout(p.w, p.h, false);
@@ -435,11 +464,18 @@
     var warn = $('#warnings');
     warn.innerHTML = '';
     if (layout.error) warn.appendChild(el('p', { class: 'warn', text: layout.error }));
-    var tooBig = {};
-    layout.unplaced.forEach(function (it) { tooBig[frameLabel(it.frame)] = (tooBig[frameLabel(it.frame)] || 0) + 1; });
-    Object.keys(tooBig).forEach(function (k) {
-      if (!layout.error) warn.appendChild(el('p', { class: 'warn', text: plural(tooBig[k], 'print') + ' of ' + k + ' is too large for this paper.' +
-        (state.margin > 0 ? ' If your printer supports borderless printing, try a margin of 0.' : '') }));
+    var tooBig = [];
+    layout.unplaced.forEach(function (it) {
+      var entry = tooBig.filter(function (t) { return t.frame === it.frame; })[0];
+      if (entry) entry.n++; else tooBig.push({ frame: it.frame, n: 1 });
+    });
+    if (!layout.error) tooBig.forEach(function (t) { warn.appendChild(tooBigWarning(t.frame, t.n, p)); });
+    document.querySelectorAll('.frame').forEach(function (row) {
+      var big = tooBig.some(function (t) { return t.frame.id === row.getAttribute('data-id'); });
+      row.classList.toggle('too-big', big);
+      var note = row.querySelector('.too-big-note');
+      if (big && !note) row.appendChild(el('small', { class: 'too-big-note', text: 'Too big for this paper and margin — not on the sheets' }));
+      if (!big && note) note.remove();
     });
     var unassigned = state.photos.filter(function (ph) { return !ph.frameId; }).length;
     if (unassigned) warn.appendChild(el('p', { class: 'warn', text: plural(unassigned, 'photo') + ' need a frame size.' }));
