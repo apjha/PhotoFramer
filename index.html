@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PhotoFramer</title>
+  <meta name="description" content="Fit photos for your frames onto as few sheets of printer paper as possible, then print.">
+  <meta name="theme-color" content="#2f6f5e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="icon.svg" alt="" width="32" height="32">
+      <div>
+        <h1>PhotoFramer</h1>
+        <p>Fit your frame-sized prints onto as few sheets as possible.</p>
+      </div>
+    </div>
+    <div class="units" role="radiogroup" aria-label="Units">
+      <label><input type="radio" name="unit" value="in"><span>in</span></label>
+      <label><input type="radio" name="unit" value="cm"><span>cm</span></label>
+      <label><input type="radio" name="unit" value="mm"><span>mm</span></label>
+    </div>
+  </header>
+
+  <main class="layout">
+    <div class="controls">
+      <section class="card">
+        <h2><span class="num">1</span> Printer paper</h2>
+        <div class="grid2">
+          <label class="field span2">Paper size
+            <select id="paper"></select>
+          </label>
+          <label class="field custom-only">Width <span class="u"></span>
+            <input id="paper-w" type="number" inputmode="decimal" min="0" step="any">
+          </label>
+          <label class="field custom-only">Height <span class="u"></span>
+            <input id="paper-h" type="number" inputmode="decimal" min="0" step="any">
+          </label>
+          <label class="field">Margin <span class="u"></span>
+            <input id="margin" type="number" inputmode="decimal" min="0" step="any">
+            <small>Edge your printer can't print on</small>
+          </label>
+          <label class="field">Gap between photos <span class="u"></span>
+            <input id="gap" type="number" inputmode="decimal" min="0" step="any">
+            <small>Room for cutting</small>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">2</span> Frame sizes</h2>
+        <p class="hint">Add the size of each frame opening and how many prints you need.</p>
+        <div id="frames" class="frames"></div>
+        <div class="quick">
+          <span>Quick add:</span>
+          <div id="frame-presets" class="chips"></div>
+        </div>
+        <button id="add-frame" class="btn ghost" type="button">+ Custom size</button>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">3</span> Photos <small>optional</small></h2>
+        <label id="drop" class="drop">
+          <input id="files" type="file" accept="image/*" multiple>
+          <strong>Choose photos</strong> or drop them here
+          <small>Each photo is matched to the frame size that best fits its shape — change it anytime.</small>
+        </label>
+        <div class="row-opts">
+          <label class="toggle"><input id="fit" type="checkbox"> Show whole photo (no cropping)</label>
+          <button id="clear-photos" class="btn ghost small" type="button" hidden>Remove all</button>
+        </div>
+        <div id="photos" class="photos"></div>
+      </section>
+    </div>
+
+    <div class="results">
+      <section class="card sticky">
+        <h2><span class="num">4</span> Layout &amp; print</h2>
+        <div id="stats" class="stats"></div>
+        <div id="warnings"></div>
+        <div id="sheets" class="sheets"></div>
+        <div class="print-bar">
+          <label class="toggle"><input id="guides" type="checkbox"> Cut guides</label>
+          <button id="print" class="btn primary" type="button">Print…</button>
+        </div>
+        <details class="tips">
+          <summary>How printing works</summary>
+          <ol>
+            <li><b>Print…</b> opens your device's print dialog — pick your <b>printer</b> there (or “Save as PDF”).</li>
+            <li>Set paper size to <b id="tip-paper"></b>.</li>
+            <li>Set scale to <b>100% / Actual size</b> (not “Fit to page”) and margins to <b>None</b>, so prints come out at the exact frame size.</li>
+          </ol>
+          <p class="hint">Browsers don't let web pages pick a printer directly — this is the same on every OS, so the choice is always in the print dialog.</p>
+        </details>
+        <details class="compare">
+          <summary>Compare paper sizes</summary>
+          <div id="compare"></div>
+        </details>
+      </section>
+    </div>
+  </main>
+
+  <div id="print-root" aria-hidden="true"></div>
+
+  <script src="js/packer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

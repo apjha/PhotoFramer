@@ -1,0 +1,13 @@
+{
+  "name": "PhotoFramer",
+  "short_name": "PhotoFramer",
+  "description": "Fit photos for your frames onto as few sheets of printer paper as possible, then print.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f2ee",
+  "theme_color": "#2f6f5e",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
